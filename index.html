@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="cache-control" content="public">
+	<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+	<script>
+	!function(e){"function"==typeof define&&define.amd?define(["jquery"],e):"object"==typeof exports?module.exports=e(require("jquery")):e(jQuery)}(function(e){function n(e){return u.raw?e:encodeURIComponent(e)}function o(e){return u.raw?e:decodeURIComponent(e)}function i(e){return n(u.json?JSON.stringify(e):String(e))}function t(e){0===e.indexOf('"')&&(e=e.slice(1,-1).replace(/\\"/g,'"').replace(/\\\\/g,"\\"));try{return e=decodeURIComponent(e.replace(c," ")),u.json?JSON.parse(e):e}catch(n){}}function r(n,o){var i=u.raw?n:t(n);return e.isFunction(o)?o(i):i}var c=/\+/g,u=e.cookie=function(t,c,s){if(arguments.length>1&&!e.isFunction(c)){if(s=e.extend({},u.defaults,s),"number"==typeof s.expires){var a=s.expires,d=s.expires=new Date;d.setMilliseconds(d.getMilliseconds()+864e5*a)}return document.cookie=[n(t),"=",i(c),s.expires?"; expires="+s.expires.toUTCString():"",s.path?"; path="+s.path:"",s.domain?"; domain="+s.domain:"",s.secure?"; secure":""].join("")}for(var f=t?void 0:{},p=document.cookie?document.cookie.split("; "):[],l=0,m=p.length;m>l;l++){var x=p[l].split("="),g=o(x.shift()),j=x.join("=");if(t===g){f=r(j,c);break}t||void 0===(j=r(j))||(f[g]=j)}return f};u.defaults={},e.removeCookie=function(n,o){return e.cookie(n,"",e.extend({},o,{expires:-1})),!e.cookie(n)}});
+	var dataRootPath = "http://navmap.mrawr.net/autogenDev/v48815/";
+	var nameRegex = /nickname = (.*)/g;
+	var idsNameRegex = /ids_name = (.*)/g;
+	var idsSysNameRegex = /strid_name = (.*)/g;
+	var atmosphereRadiusRegex = /atmosphere_range = (.*)/g;
+	var sysNameRegex = /system = (.*)/g;
+	var idsInfoRegex = /ids_info = (.*)/g;
+	var scaleRegex = /navmapscale = (.*)/g;
+	var currentSystemNickname = "Sirius";
+	var baseNameFile = dataRootPath+"GAMEDATA_bases.txt";
+	var systemNameFile = dataRootPath+"GAMEDATA_systems.txt";
+	var factionNameFile = dataRootPath+"GAMEDATA_factions.txt";
+	var systemPathFile = dataRootPath+"universe/systems_shortest_path.ini";
+	var systemLegalPathFile = dataRootPath+"universe/test.ini";
+	var infocardFile = dataRootPath+"infocards.txt";
+	var universeFile = dataRootPath+"universe/universe.ini";
+	var objectRegex = /(\[Object\])(\r\n.+)*/g;
+	var zoneRegex = /(\[zone\])(\r\n.+)*/g;
+	var ambientRegex = /(\[Ambient\])(\r\n.+)*/g;
+	var systemRegex = /(\[system\])(\r\n.+)*/g;
+	var baseRegex = /(\[Base\])(\r\n.+)*/g;
+	var posRegex = /pos = (.*)/g;
+	var sizeRegex = /size = (.*)/g;
+	var repRegex = /reputation = (.*)/g;
+	var pathRegex = /Path = (.*)/g;
+	var gotoRegex = /goto = (.*)/g;
+	var burnColourRegex = /burn_color = (.*)/g;
+	var colourRegex = /color = (.*)/g
+	var fogColourRegex = /property_fog_color = (.*)/g;
+	var nameRegex = /nickname = (.*)/g;
+	var rotationRegex = /rotate = (.*)/g;
+	var textRegex = /(<(text|TEXT)>.+?<\/(text|TEXT)>|<(para|PARA)\/>)/g;
+	var oorpArray = ["li11","br17","br19","ew63","ga11","ga13","ga09","ga12","ga05","ga06","ga10","ga14","br10","iw09","li06","ca01","ev01","bw14", "bw13","st02c","st03b","hi19","hi22","hi08","hi08","ew37", "ku15", "li07"];
+	var systemScaleFactor = 1;
+	var searchTimedOut = "nope";
+	var universeFileGetResult;
+	
+	var baseNameArray = {};
+	var systemNameArray = {};
+	var systemIdsNameArray = {};
+	var systemIdsNameArrayState = "nope";
+	var searchArray = {};
+	var matchArray = [];
+	var searchArrayState = "nope";
+	var systemPosArray = {};
+	var systemPosArrayState = "nope";
+	var systemInfoArray = {};
+	var systemScaleFactorArray = {};
+	var systemScaleFactorArrayState = "nope";
+	var infocardArray = {};
+	var infocardArrayState = "nope";
+	var baseSystemArray = {};
+	var baseSystemArrayState = "nope";
+	var factionNameArray = {};
+	var factionNameArrayState = "nope";
+	var connectionArray = {};
+	var connectionArrayState = "nope";
+	var jgConnectionArray = {};
+	var jgConnectionArrayState = "nope";
+	var systemConnectionState = "nope";
+	var zoneFlagArray = {
+		0: "zoneHidden",
+		64: "zoneRockAsteroids",
+		66: "zoneRock",
+		128: "zoneJerseyDebris",
+		129: "zoneDetroitDebrisNormal",
+		130: "zoneDetroitDebrisHigh",
+		132: "zoneDetroitDebrisLow",
+		256: "zoneIceAsteroidsSmall",
+		258: "zoneIceAsteroids1",
+		512: "zoneLavaRocks",
+		1024: "zoneGreenAsteroids",
+		2049: "zoneIceAsteroids2",
+		4096: "zoneMinefield1",
+		4128: "zoneMinefield2",
+		8192: "zoneAsteroidField",
+		8200: "zoneAsteroids",
+		16400: "zoneIceNebula",
+		62768: "zoneNebulaWithFogColour",
+		65536: "zoneExclusion1",
+		131072: "zoneExclusion2",
+		196608: "zoneExclusion3"
+	};
+	
+	function updateCookie(){
+		var elementValues = {};
+		$(":checkbox").each(function(){
+		  elementValues[this.id] = this.checked;
+		});
+
+		elementValues["buttonText"] = $("button").text();
+		$.cookie('elementValues', elementValues, { expires: 7, path: '/' })
+	}
+
+	function repopulateFormElements(){
+		var elementValues = $.cookie('elementValues');
+		if (elementValues){
+			Object.keys(elementValues).forEach(function(element) {
+				var checked = elementValues[element];
+				$("#" + element).prop('checked', checked);
+			});
+			$("button").text(elementValues["buttonText"]);
+		}
+	}
+	
+	$(document).ready(function () {
+		$(":checkbox").on("change", function(){
+			updateCookie();
+			updateConfigClasses();
+		});
+
+		$("#configButton").click(function(event) {
+			toggleConfigMenu();
+			event.stopPropagation();
+		});
+
+		$.cookie.json = true;
+		repopulateFormElements();
+		updateConfigClasses();
+	});
+	
+	function toggleConfigMenu () {
+		$(".configMenu").toggleClass("closed");
+		console.log("configMenu toggled");
+		if (document.querySelector(".configMenu").className.indexOf("closed") == -1) {
+			$('html').click(function() {
+				$(".configMenu").addClass("closed");
+			});
+			$(".configMenu").click(function(event){
+				event.stopPropagation();
+			});
+		} else {
+			$("html").unbind("click");
+			$(".configMenu").unbind("click");
+		}
+	}
+		
+	function updateConfigClasses() {
+		if (document.querySelector(".configOption#wrecks  input").checked) {
+			$(".object.wreck").removeClass("hidden");
+		} else {
+			$(".object.wreck").addClass("hidden");
+		}
+		if (document.querySelector(".configOption#zones  input").checked) {
+			$(".zone").removeClass("hidden");
+		} else {
+			$(".zone").addClass("hidden");
+		}
+		if (document.querySelector(".configOption#connections  input").checked
+			&& document.querySelector(".systemConnectionProp") == null) {
+			generateSystemConnections();
+		} else if (!(document.querySelector(".configOption#connections  input").checked)) {
+			$(".systemConnectionProp").hide();
+		} else if (document.querySelector(".configOption#connections  input").checked
+			&& document.querySelector(".map .system") !== null) {
+			$(".systemConnectionProp").show();
+		}
+		if (document.querySelector(".configOption#oorp  input").checked) {
+			$(".oorp").removeClass("hidden");
+			$(".map .system.oorp label").hAlign();
+		} else {
+			$(".oorp").addClass("hidden");
+		}
+		generateSystemScale(currentSystem);
+	}
+	
+	var currentSystem;
+      
+	function generateSystemScale(system) {
+		if (document.querySelector(".mapScale") != null) {
+			currentSystem = system;
+			if (document.querySelector(".configOption#scale  input").checked) {
+				$(".mapScale").addClass("arrows");
+				baseSize = 30;
+			} else {
+				$(".mapScale").removeClass("arrows");
+				baseSize = 27.5;
+			}
+			if (typeof systemScaleFactorArray[system.toLowerCase()] === "undefined") {
+				document.querySelector(".mapScale h2").innerHTML = baseSize+"k";
+			} else {
+				document.querySelector(".mapScale h2").innerHTML = (Math.round(baseSize/systemScaleFactorArray[system.toLowerCase()]*10) / 10)+"K";
+			}
+		}
+	}
+      
+	function generateLookupArrays() {
+		$.get(baseNameFile, function(data) {
+			var nameArray = data.split("\n");
+			for (i = 0; i < nameArray.length; i++) { 
+				var keyPairArray = nameArray[i].split(" = ");
+				baseNameArray[keyPairArray[0].toLowerCase()] = keyPairArray[1];
+			}
+		});
+		
+		$.get(systemNameFile, function(data) {
+			var nameArray = data.split("\n");
+			for (i = 0; i < nameArray.length; i++) { 
+				var keyPairArray = nameArray[i].split(" = ");
+				systemNameArray[keyPairArray[0].toLowerCase()] = keyPairArray[1];
+			}
+		});
+
+		$.get(factionNameFile, function(data) {
+			var nameArray = data.split("\n");
+			for (i = 0; i < nameArray.length; i++) { 
+				var keyPairArray = nameArray[i].split(" = ");
+				factionNameArray[keyPairArray[0].toLowerCase()] = keyPairArray[1].trim();
+			}
+		});
+		
+		$.get(infocardFile, function(data) {
+			var rawInfocardArray = data.split("\r\n");
+			for (i = 0; i < rawInfocardArray.length-1; i += 2) { 
+				infocardArray[rawInfocardArray[i].toString()] = rawInfocardArray[i+1].toString();
+			}
+			infocardArrayState = "ready";
+			console.log("Infocard lookup array generated");
+		});
+		
+		$.get(systemPathFile, function(data) {
+			var rawPathFileArray = data.split("\r\n");
+			for (i = 0; i < rawPathFileArray.length; i++) { 
+				if (rawPathFileArray[i].indexOf("Path =") != -1) {
+					var currentConnection = rawPathFileArray[i].match(pathRegex).join().substring(7).replace(/ /g,"").split(",");
+					if (typeof currentConnection[3] !== "undefined") {
+						var lowCurrentConnection = currentConnection[0].trim().toLowerCase();
+						if (typeof connectionArray[lowCurrentConnection] == "undefined") {
+							connectionArray[lowCurrentConnection] = [currentConnection[3].trim().toLowerCase()];
+						}
+						if (connectionArray[lowCurrentConnection].indexOf(currentConnection[3].trim().toLowerCase()) == -1) {
+							connectionArray[lowCurrentConnection].push(currentConnection[3].trim().toLowerCase());
+						}
+					}
+				}
+			}
+			connectionArrayState = "ready";
+			console.log("Connection lookup array generated");
+		});
+		
+		$.get(systemLegalPathFile, function(data) {
+			var rawLegalPathFileArray = data.split("\r\n");
+			for (i = 0; i < rawLegalPathFileArray.length; i++) { 
+				if (rawLegalPathFileArray[i].indexOf("Path =") != -1) {
+					var currentConnection = rawLegalPathFileArray[i].match(pathRegex).join().substring(7).replace(/ /g,"").split(",");
+					if (typeof currentConnection[3] !== "undefined") {
+						var lowCurrentConnection = currentConnection[0].trim().toLowerCase();
+						if (typeof jgConnectionArray[lowCurrentConnection] == "undefined") {
+							jgConnectionArray[lowCurrentConnection] = [currentConnection[3].trim().toLowerCase()];
+						}
+						if (jgConnectionArray[lowCurrentConnection].indexOf(currentConnection[3].trim().toLowerCase()) == -1) {
+							jgConnectionArray[lowCurrentConnection].push(currentConnection[3].trim().toLowerCase());
+						}
+					}
+				}
+			}
+			jgConnectionArrayState = "ready";
+			console.log("Jumpgate connection lookup array generated");
+		});
+		
+		$.get(universeFile, function(data) {
+			universeFileGetResult = data;
+			var universeArray = data.match(systemRegex);
+			for (i = 0; i < universeArray.length; i++) {
+				if (universeArray[i].toLowerCase().indexOf("strid_name =") != -1) {
+					var sysNameIds = universeArray[i].toLowerCase().match(idsSysNameRegex).join().substring(13);
+					var nameString = universeArray[i].toLowerCase().match(nameRegex).join().substring(11);
+					systemIdsNameArray[nameString.toLowerCase()] = sysNameIds;
+				}
+				if (universeArray[i].toLowerCase().indexOf("pos =") != -1) {
+					var sysPos = universeArray[i].toLowerCase().match(posRegex).join().substring(6).replace(/ /g,"").split(",");
+					var nameString = universeArray[i].toLowerCase().match(nameRegex).join().substring(11);
+					systemPosArray[nameString.toLowerCase()] = sysPos;
+				}
+				if (universeArray[i].toLowerCase().indexOf("navmapscale") != -1) {
+					var scaleFactor = universeArray[i].toLowerCase().match(scaleRegex).join().substring(14);
+					var nameString = universeArray[i].toLowerCase().match(nameRegex).join().substring(11);
+					systemScaleFactorArray[nameString.toLowerCase()] = parseFloat(scaleFactor);
+				}
+			}
+			systemPosArray["ev01"] = [-1,17];
+			systemIdsNameArrayState = "ready";
+			systemScaleFactorArrayState = "ready";
+			systemPosArrayState = "ready";
+			console.log("System scale lookup array generated");
+			console.log("Universe map position lookup array generated");
+			console.log("System name infocard number lookup array generated");
+		});
+		generateSearchArray();
+	}
+	
+	function generateSearchArray() {
+		if (infocardArrayState != "ready" | systemIdsNameArrayState != "ready") {
+			setTimeout(function(){generateSearchArray()},10);
+		} else {
+			for (systemNickname in systemIdsNameArray) {
+				if(systemNickname.toLowerCase().indexOf("sector") == -1) {
+					matchArray.push(infocardArray[systemIdsNameArray[systemNickname]]);
+					searchArray[infocardArray[systemIdsNameArray[systemNickname]]] = systemNickname;
+					searchArray[infocardArray[systemIdsNameArray[systemNickname]].toLowerCase()] = systemNickname;
+				}
+			}
+			var universeBaseArray = universeFileGetResult.match(baseRegex);
+			for (i = 0; i < universeBaseArray.length; i++) {
+				if (universeBaseArray[i].toLowerCase().indexOf("proxy_base") == -1 
+					&& universeBaseArray[i].toLowerCase().indexOf("miners") == -1
+					&& universeBaseArray[i].toLowerCase().indexOf("system =") != -1
+					&& universeBaseArray[i].toLowerCase().indexOf("strid_name") != -1) {
+					var baseName = infocardArray[universeBaseArray[i].toLowerCase().match(idsSysNameRegex).join().substring(13)];
+					var systemNickname = universeBaseArray[i].toLowerCase().match(sysNameRegex).join().substring(9);
+					if (typeof baseName !== "undefined" && typeof systemNickname !== "undefined") {
+						baseSystemArray[baseName.toLowerCase()] = systemNickname.toLowerCase();
+						matchArray.push(baseName);
+						searchArray[baseName] = systemNickname;
+						searchArray[baseName.toLowerCase()] = systemNickname;
+					} else {
+						console.log(universeBaseArray[i] + " infocardNumber: "+universeBaseArray[i].toLowerCase().match(idsSysNameRegex).join().substring(13) + " systemNick: "+ systemNickname);
+					}
+				}
+			}
+			searchArrayState = "ready";
+			console.log("Base system lookup array generated");
+			baseSystemArrayState = "ready";
+			console.log("Search array generated");
+		}
+	}
+	
+	function parseInfocard(infocard) {
+		console.log(infocard);
+		if (infocard.toLowerCase().indexOf("<text>") == -1) {
+			return infocard;
+		} else {
+			return infocard.toString().match(textRegex).map(function (textElement) { 
+				if (textElement.toLowerCase().indexOf("<para") != -1) {
+					return "<br class='infocardBreak'>";
+				} else {
+					return "<span class='infocardText'>"+textElement.slice(6,-5)+"</span>";
+				}
+			}).join("");
+		}
+	}
+	
+	function showObjectInfo(idsNameNumber, idsInfoNumber, classString, zPosition, factionNickname, systemNickname) {
+		document.querySelector(".infocardContainer").style.display = "block";
+		var scaleFactor = 1;
+		if (typeof systemScaleFactorArray[systemNickname] !== "undefined") {
+			scaleFactor = parseFloat(systemScaleFactorArray[systemNickname]);
+		}
+		var planePosition;
+		if (zPosition == 0) {
+			planePosition = "on";
+		} else if (zPosition > 0) {
+			planePosition = (Math.round(parseFloat(zPosition)/(scaleFactor*1000)*10) / 10)+"K above";
+		} else if (zPosition < 0) {
+			planePosition = (Math.round(parseFloat(zPosition)/(scaleFactor*1000)*-10) / 10)+"K below";
+		} else { 
+			// :)))
+			planePosition = "non-standard in relation to";
+		}
+		if (typeof factionNickname !== "undefined") {
+			var ownerString = " It belongs to "+factionNameArray[factionNickname]+".";
+		} else {
+			var ownerString = "";
+		}
+		if ((classString.indexOf("base") != -1 | classString.indexOf("planet") != -1) && classString.indexOf("dockable") != -1 && typeof infocardArray[(parseInt(idsInfoNumber)+1).toString()] !== "undefined" && idsInfoNumber != 66140) {
+			var infocardURI = encodeURI(infocardArray[(parseInt(idsInfoNumber)+1).toString()]);
+			document.querySelector(".infocardContainer").innerHTML = "<h2>"+infocardArray[idsNameNumber]+"</h2>"+parseInfocard(infocardArray[idsInfoNumber])+parseInfocard(infocardArray[(parseInt(idsInfoNumber)+1).toString()])+"<h3>Technical info</h3><p class='technicalInfo'>This object is located "+planePosition+" the plane, and has infocard number "+idsInfoNumber+", base description infocard number "+(parseInt(idsInfoNumber)+1).toString()+" and name infocard number "+idsNameNumber+"."+ownerString+" "+"<a class='editLink' target='_blank'><i class='fa fa-pencil-square-o'></i></a>";
+			document.querySelector(".editLink").href = "https://docs.google.com/forms/d/1bIYtQCx0lLgguEF6xWDm0RRFr0IIz-tM1Toh6SyB9wA/viewform?entry.515729986="+(parseInt(idsInfoNumber)+1).toString()+"&entry.628548621="+infocardURI+"&entry.899322418="+infocardURI;
+		} else {
+			var infocardURI = encodeURI(infocardArray[idsInfoNumber]);
+			document.querySelector(".infocardContainer").innerHTML = "<h2>"+infocardArray[idsNameNumber]+"</h2>"+parseInfocard(infocardArray[idsInfoNumber])+"<h3>Technical info</h3><p  class='technicalInfo'>This object is located "+planePosition+" the plane, and has infocard number "+idsInfoNumber+" and name infocard number "+idsNameNumber+"."+ownerString+" "+"<a class='editLink' target='_blank'><i class='fa fa-pencil-square-o'></i></a>";
+			document.querySelector(".editLink").href = "https://docs.google.com/forms/d/1bIYtQCx0lLgguEF6xWDm0RRFr0IIz-tM1Toh6SyB9wA/viewform?entry.515729986="+idsInfoNumber+"&entry.628548621="+infocardURI+"&entry.899322418="+infocardURI;
+		}
+		console.log("Infocard "+idsInfoNumber+" for "+infocardArray[idsNameNumber]+" fetched");
+		if ($(".navContainer").css("position") == "fixed") {
+			$('html, body').animate({ scrollTop: $(document).scrollTop()+document.querySelector(".infocardContainer h2").getBoundingClientRect().top-document.querySelector(".navContainer").scrollHeight}, 150);
+		} else {
+			$('html, body').animate({ scrollTop: $(document).scrollTop()+document.querySelector(".infocardContainer h2").getBoundingClientRect().top}, 150);
+		}
+	}
+	
+	function findObjectName(internalNickname, classString) {
+		if (typeof classString !== "undefined" && typeof internalNickname !== "undefined" && classString.indexOf("jump") != -1) {
+			if (classString.indexOf("hole") != -1) {
+				var jumpSystems = internalNickname.slice(0,-5).split("_to_");
+				return systemNameArray[jumpSystems[0].toLowerCase()] + " > " + systemNameArray[jumpSystems[1].toLowerCase()] + " Jump Hole";
+			} else {
+				var jumpSystems = internalNickname.split("_to_");
+				return systemNameArray[jumpSystems[0].toLowerCase()] + " > " + systemNameArray[jumpSystems[1].toLowerCase()] + " Jump Gate";
+			}
+		}
+		if (baseNameArray[internalNickname.toLowerCase()] != null) {
+			return baseNameArray[internalNickname.toLowerCase()];
+		} else if (baseNameArray[internalNickname.toLowerCase()+"_base"] != null) {
+			return baseNameArray[internalNickname.toLowerCase()+"_base"];
+		} else {
+			return internalNickname + "???";
+		}
+	}
+	
+	function createLoadAnimation() {
+		if (document.querySelector(".loadingOverlay") == null) {
+			$('html, body').animate({ scrollTop: 0 }, 150);
+			var loader = document.createElement("div");
+			loader.innerHTML = "<div class='loadTextContainer'><h2 class='loaderTitle'>Loading...</h2><div class='loader'></div></div>";
+			loader.className = "loadingOverlay";
+			document.querySelector("body").appendChild(loader);
+		}
+	}
+	
+	function generateUniverseMap() {
+		createLoadAnimation();
+		document.querySelector(".navContainer #showUniverseMap").style.display = "none";
+		$(".grid").children().hide();
+		document.querySelector(".mapLegend").style.display = "block";
+		document.querySelector(".navContainer #helpLink").style.display = "block";
+		document.querySelector("#navSystemTitle").style.display = "none";
+		if (document.querySelector(".configOption#connections  input").checked) {
+			if (systemConnectionState = "ready") {
+				var systemConnectionsEvaluated = true;
+			} else {
+				var systemConnectionsEvaluated = false;
+			}
+		} else {
+			var systemConnectionsEvaluated = true;
+		}
+			
+		if (infocardArrayState != "ready" | systemScaleFactorArrayState != "ready" | searchArrayState != "ready" | systemConnectionsEvaluated != true) {
+			setTimeout(function(){generateUniverseMap()},10);
+		} else {
+			if (document.querySelector(".configOption#connections  input").checked) {
+				$(".systemConnectionProp").show();
+			}
+			document.querySelector(".loaderTitle").innerHTML = "Generating map...";
+			document.querySelector("#searchField").value = "";
+			currentSystemNickname = "Sirius";
+			document.querySelector(".grid").style.background = "url('SiriusMap.jpg') black"
+			document.querySelector(".grid").style.backgroundSize = "cover !important"
+			// empty the map div before doing anything else
+			$(".map").children().not(".systemConnectionProp").remove();
+			while (document.querySelector(".infocardContainer").firstChild) {
+				document.querySelector(".infocardContainer").removeChild(document.querySelector(".infocardContainer").firstChild);
+			}
+			document.querySelector(".infocardContainer").style.display = "none";
+			if (document.querySelector(".systemTitle") == null) {
+				var systemTitle = document.createElement("h2");
+				document.querySelector(".grid").appendChild(systemTitle);
+			} else {
+				var systemTitle = document.querySelector(".systemTitle");
+			}
+			if (document.querySelector(".darkOverlay") == null) {
+				var darkOverlay = document.createElement("div");
+				darkOverlay.className = "darkOverlay";
+				document.querySelector(".grid").appendChild(darkOverlay);
+			}
+			if (document.querySelector(".mapScale") != null) {
+				document.querySelector(".grid").removeChild(document.querySelector(".mapScale"));
+			}
+			systemTitle.innerHTML = "Sirius";
+			systemTitle.className = "systemTitle";
+			for (var systemName in systemPosArray) {
+				if (systemPosArray.hasOwnProperty(systemName)) {
+					if (typeof systemIdsNameArray[systemName] !== "undefined" && systemName.toLowerCase().indexOf("sector") == -1) {
+						var system = document.createElement("div");
+						system.dataset.systemNickname = systemName;
+						system.className = "system " + systemName.slice(0,2).toLowerCase();
+						var systemLabel = document.createElement("label");
+						systemLabel.innerHTML = infocardArray[systemIdsNameArray[systemName.toLowerCase()]];
+						system.appendChild(systemLabel);
+						if (oorpArray.indexOf(systemName) != -1) {
+							system.className += " oorp";
+						}
+						system.style.top = parseFloat(systemPosArray[systemName][1])*6.6-50 + "%";
+						system.style.left = parseFloat(systemPosArray[systemName][0])*6.6-50  + "%";
+						system.style.position = "absolute";
+						document.querySelector(".map").appendChild(system);
+						system.addEventListener("click", function() {
+							generateMap(this.dataset.systemNickname);
+					});
+					}
+				}
+			}
+			console.log("Universe map generated");
+			updateConfigClasses();
+			$(".map div label").hAlign();
+			document.querySelector("body").removeChild(document.querySelector(".loadingOverlay"));
+			$("#searchField").keyup();
+		}
+	}
+	
+	function generateSystemConnections() {
+		if (document.querySelector(".systemConnectionProp") == null && document.querySelector(".configOption#connections  input").checked) {
+			if (systemPosArrayState != "ready" | connectionArrayState != "ready" | jgConnectionArrayState != "ready") {
+				setTimeout(function(){generateSystemConnections()},10);
+			} else {
+				for (var system in connectionArray) {
+					if (connectionArray.hasOwnProperty(system)) {
+						for (i = 0; i < connectionArray[system].length; i++) {
+							if (typeof systemPosArray[system] !== "undefined" 
+							&& typeof systemPosArray[connectionArray[system][i]] !== "undefined"
+							&& document.querySelector("[data-connected-points~="+connectionArray[system][i]+"]"+"[data-connected-points~="+system+"]") == null) {
+								x1 = parseFloat(systemPosArray[system][1])*6.6-50;
+								x2 = parseFloat(systemPosArray[connectionArray[system][i]][1])*6.6-50;
+								y1 = parseFloat(systemPosArray[system][0])*6.6-50;
+								y2 = parseFloat(systemPosArray[connectionArray[system][i]][0])*6.6-50;
+								var propClass = "systemConnectionProp";
+								if (oorpArray.indexOf(system) != -1 | oorpArray.indexOf(connectionArray[system][i]) != -1) {
+									propClass += " oorp";
+								}
+								var connection = new Line(x1, x2, y1, y2, "systemConnection", propClass, ".map", system, connectionArray[system][i]);
+							}
+						}
+					}
+				}
+				for (var system in jgConnectionArray) {
+					if (jgConnectionArray.hasOwnProperty(system)) {
+						for (i = 0; i < jgConnectionArray[system].length; i++) {
+							if (typeof systemPosArray[system] !== "undefined" 
+							&& typeof systemPosArray[jgConnectionArray[system][i]] !== "undefined") {
+								var currentSystemSelector = document.querySelector("[data-connected-points~="+jgConnectionArray[system][i]+"]"+"[data-connected-points~="+system+"]");
+								if (currentSystemSelector == null) {
+									x1 = parseFloat(systemPosArray[system][1])*6.6-50;
+									x2 = parseFloat(systemPosArray[jgConnectionArray[system][i]][1])*6.6-50;
+									y1 = parseFloat(systemPosArray[system][0])*6.6-50;
+									y2 = parseFloat(systemPosArray[jgConnectionArray[system][i]][0])*6.6-50;
+									var propClass = "systemConnectionProp jgConnection";
+									if (oorpArray.indexOf(system) != -1 | oorpArray.indexOf(jgConnectionArray[system][i]) != -1) {
+										propClass += " oorp";
+									}
+									var connection = new Line(x1, x2, y1, y2, "systemConnection", propClass, ".map", system, connectionArray[system][i]);
+								} else if (currentSystemSelector.className.indexOf("jgConnection") == -1) {
+									currentSystemSelector.className += " jgConnection";
+								}
+							}
+						}
+					}
+				}
+				systemConnectionState = "ready";
+				updateConfigClasses();
+			}
+		}
+	}
+
+	function generateMap(system) {
+		createLoadAnimation();
+		document.querySelector(".navContainer #showUniverseMap").style.display = "block";
+		document.querySelector("#navSystemTitle").style.display = "block";
+		document.querySelector(".navContainer #helpLink").style.display = "none";
+		$(".grid").children().show();
+		$(".systemConnectionProp").hide();
+		document.querySelector(".mapLegend").style.display = "none";
+		if (infocardArrayState != "ready" | systemScaleFactorArrayState != "ready" | searchArrayState != "ready") {
+			setTimeout(function(){generateMap(system)},10);
+		} else {
+			document.querySelector(".loaderTitle").innerHTML = "Generating map...";
+			document.querySelector("#searchField").value = "";
+			currentSystemNickname = system;
+			if (document.querySelector(".darkOverlay") != null) {
+				var darkOverlay = document.createElement("div");
+				darkOverlay.classname = "darkOverlay";
+				document.querySelector(".grid").removeChild(document.querySelector(".darkOverlay"));
+			}
+			document.querySelector(".grid").style.background = "black";
+			// to-do: parse system ini locations from universe.ini to avoid issues like this
+			if (system.toLowerCase() == "fp7_system") {
+				var systemFile = dataRootPath+"universe/systems/fp7/fp7_system.ini";
+			} else {
+				var systemFile = dataRootPath+"universe/systems/"+system+"/"+system+".ini";
+			}
+			if (typeof systemScaleFactorArray[system.toLowerCase()] === "undefined") {
+				systemScaleFactor = 1;
+			} else {
+				systemScaleFactor = systemScaleFactorArray[system.toLowerCase()];
+			}
+			// empty the map div before doing anything else
+			$(".map").children().not(".systemConnectionProp").remove();
+			while (document.querySelector(".infocardContainer").firstChild) {
+				document.querySelector(".infocardContainer").removeChild(document.querySelector(".infocardContainer").firstChild);
+			}
+			if (document.querySelector(".mapScale") == null) {
+				var mapScale = document.createElement("div");
+				var mapScaleNumber = document.createElement("h2");
+				var mapScaleArrowLeft = document.createElement("div");
+				var mapScaleArrowRight = document.createElement("div");
+				mapScaleArrowLeft.className = "arrowHead arrowL";
+				mapScaleArrowRight.className = "arrowHead arrowR";
+				mapScale.className = "mapScale";
+				mapScale.appendChild(mapScaleArrowRight);
+				mapScale.appendChild(mapScaleArrowLeft);
+				mapScale.appendChild(mapScaleNumber);
+				document.querySelector(".grid").appendChild(mapScale);
+			}
+			generateSystemScale(system);
+			document.querySelector(".infocardContainer").style.display = "none";
+			if (document.querySelector(".systemTitle") == null) {
+				var systemTitle = document.createElement("h2");
+			} else {
+				var systemTitle = document.querySelector(".systemTitle");
+				document.querySelector(".grid").appendChild(systemTitle);
+			}
+			systemTitle.innerHTML = infocardArray[systemIdsNameArray[system.toLowerCase()]];
+			document.querySelector(".map").dataset.systemNickname = system.toLowerCase();
+			document.querySelector("#navSystemTitle").innerHTML = "Current System: " + infocardArray[systemIdsNameArray[system.toLowerCase()]];
+			systemTitle.className = "systemTitle";
+			var posArray = [];
+			var nameArray = [];
+			$.get(systemFile, function(data) {
+				var sysAmbientObject = data.match(ambientRegex);
+				if (sysAmbientObject.join().indexOf("color") != -1) {
+					var ambientColourString = sysAmbientObject.join().match(colourRegex).join().substring(8).replace(/ /g,"");
+					console.log(currentSystemNickname+" ambient colour: "+ambientColourString);
+					var ambientColourArray = ambientColourString.split(",");
+					var ambientColourString = "rgba("+parseInt(ambientColourArray[0]*0.3)+","+parseInt(ambientColourArray[1]*0.3)+","+parseInt(ambientColourArray[2]*0.3)+",0.6)";
+					document.querySelector(".grid").style.background = ambientColourString;
+				}
+				//generate zones
+				var sysZoneArray = data.match(zoneRegex);
+				for (i = 0; i < sysZoneArray.length; i++) {
+					if (sysZoneArray[i].indexOf("ids_info") != -1 && sysZoneArray[i].indexOf("66170") == -1) {
+						var zoneName;
+						var zone = document.createElement("div");
+						zone.className += "zone";
+						var nameString = sysZoneArray[i].match(nameRegex).join().substring(11);
+						if (sysZoneArray[i].indexOf("ids_name") != -1) {
+							var idsNameNumber = sysZoneArray[i].match(idsNameRegex).join().substring(11);
+							zone.dataset.idsName = idsNameNumber;
+							zoneName = infocardArray[idsNameNumber];
+						}
+						var zoneLabel = document.createElement("label");
+						zoneLabel.innerHTML = zoneName;
+						zone.appendChild(zoneLabel);
+						var posString = sysZoneArray[i].match(posRegex).join().substring(6).replace(/ /g,"");
+						var zonePosArray = posString.split(",");
+						zone.style.top = parseFloat(zonePosArray[2])/2000*systemScaleFactor + "%";
+						zone.style.left = parseFloat(zonePosArray[0])/2000*systemScaleFactor + "%";
+						zone.dataset.zPos = zonePosArray[1]*systemScaleFactor;
+						zone.style.position = "absolute";
+						if (sysZoneArray[i].indexOf("ids_info") != -1) {
+							var idsInfoNumber = sysZoneArray[i].match(idsInfoRegex).join().substring(11);
+							zone.dataset.idsInfo = idsInfoNumber;
+							zone.addEventListener("click", function() {
+							    showObjectInfo(this.dataset.idsName, this.dataset.idsInfo, this.className, this.dataset.zPos, this.dataset.reputation, document.querySelector(".map").dataset.systemNickname);
+							});
+						}
+						if (sysZoneArray[i].indexOf("rotate") != -1) {
+							var rotateString = sysZoneArray[i].match(rotationRegex).join().substring(10).replace(/ /g,"");
+							var zoneRotateArray = rotateString.split(",");
+							zone.style.transform = "rotate("+-parseFloat(zoneRotateArray[1])+"deg)";
+							zone.style.webkitTransform = "rotate("+-parseFloat(zoneRotateArray[1])+"deg)";
+							zoneLabel.style.transform = "rotate("+parseFloat(zoneRotateArray[1])+"deg)";
+							zoneLabel.style.webkitTransform = "rotate("+parseFloat(zoneRotateArray[1])+"deg)";
+						}
+						var sizeString = sysZoneArray[i].match(sizeRegex).join().substring(7).replace(/ /g,"");
+						var zoneSizeArray = sizeString.split(",");
+						zone.style.height = systemScaleFactor*parseFloat(zoneSizeArray[2])/1000 + "%";
+						zone.style.width = systemScaleFactor*parseFloat(zoneSizeArray[0])/1000 + "%";
+						if (sysZoneArray[i].toLowerCase().indexOf("sphere") != -1) {
+							zone.style.height = zone.style.width;
+						}
+						if (sysZoneArray[i].indexOf("property_fog_color") != -1) {
+							var fogColourString = sysZoneArray[i].match(fogColourRegex).join().substring(21).replace(/ /g,"");
+							console.log(zoneName+" fog colour: "+fogColourString);
+							var fogColourArray = fogColourString.split(",");
+							var fogColourString = "rgba("+parseInt(fogColourArray[0])+","+parseInt(fogColourArray[1])+","+parseInt(fogColourArray[2])+",0.35)";
+							zone.style.backgroundColor = fogColourString;
+						}
+						zone.style.marginTop = -systemScaleFactor*parseFloat(zoneSizeArray[2])/2000 + "%";
+						zone.style.marginLeft = -systemScaleFactor*parseFloat(zoneSizeArray[0])/2000 + "%";
+						document.querySelector(".map").appendChild(zone);
+					}
+				}
+				
+				// generate objects
+				var sysObjectArray = data.match(objectRegex);
+				for (i = 0; i < sysObjectArray.length; i++) { 
+					var objectName;
+					var object = document.createElement("div");
+					var posString = sysObjectArray[i].match(posRegex).join().substring(6).replace(/ /g,"");
+					var nameString = sysObjectArray[i].match(nameRegex).join().substring(11);
+					var objectClasses = getObjectClasses(sysObjectArray[i]);
+					if (sysObjectArray[i].indexOf("ids_name") != -1) {
+						var idsNameNumber = sysObjectArray[i].match(idsNameRegex).join().substring(11);
+						object.dataset.idsName = idsNameNumber;
+						objectName = infocardArray[idsNameNumber];
+					} else {
+						objectName = findObjectName(nameString, objectClasses);
+						if (objectName.indexOf("???") != -1 && objectClasses.indexOf("tradelane") == -1) {
+							object.style.display = "none";
+						}
+					}
+					var objectLabel = document.createElement("label");
+					objectLabel.innerHTML = objectName;
+					object.appendChild(objectLabel);
+					if (sysObjectArray[i].indexOf("ids_info") != -1) {
+						var idsInfoNumber = sysObjectArray[i].match(idsInfoRegex).join().substring(11);
+						object.dataset.idsInfo = idsInfoNumber;
+						object.addEventListener("click", function() {
+							if (this.className.indexOf("jump") != -1  && typeof this.dataset.jumpDest !== "undefined") {
+								generateMap(this.dataset.jumpDest);
+							} else {
+								showObjectInfo(this.dataset.idsName, this.dataset.idsInfo, this.className, this.dataset.zPos, this.dataset.reputation, document.querySelector(".map").dataset.systemNickname);
+							}
+						});
+					}
+					var objectPosArray = posString.split(",");
+					object.style.top = parseFloat(objectPosArray[2])/2000*systemScaleFactor + "%";
+					object.style.left = parseFloat(objectPosArray[0])/2000*systemScaleFactor + "%";
+					object.dataset.zPos = objectPosArray[1]*systemScaleFactor;
+					object.style.position = "absolute";
+					object.className = objectClasses;
+					document.querySelector(".map").appendChild(object);
+					if (sysObjectArray[i].indexOf("rotate =") != -1 && object.className.indexOf("tradelane") != -1) {
+						var rotateString = sysObjectArray[i].match(rotationRegex).join().substring(9).replace(/ /g,"");
+						var objectRotateArray = rotateString.split(",");
+						if (sysObjectArray[i].indexOf("ga_lane") != -1) {
+							object.style.transform = "rotate("+(-parseFloat(objectRotateArray[0]))+"deg)";
+							object.style.webkitTransform = "rotate("+(-parseFloat(objectRotateArray[0]))+"deg)";
+						} else {
+							object.style.transform = "rotate("+(-parseFloat(objectRotateArray[1]))+"deg)";
+							object.style.webkitTransform = "rotate("+(-parseFloat(objectRotateArray[1]))+"deg)";
+						}
+					}
+					if (object.className.indexOf("jump") != -1 && sysObjectArray[i].indexOf("goto =") != -1) {
+						object.dataset.jumpDest = sysObjectArray[i].match(gotoRegex).join().substring(7).replace(/ /g,"").split(",")[0].toLowerCase();
+					}
+					if (sysObjectArray[i].indexOf("reputation =") != -1) {
+						object.dataset.reputation = sysObjectArray[i].match(repRegex).join().substring(13);
+					}
+					if (object.className.indexOf("star") != -1) {
+						var innerStar = document.createElement("div");
+						innerStar.className = "star";
+						innerStar.style.top = "50%";
+						innerStar.style.left = "50%";
+						innerStar.style.position = "absolute";
+						object.appendChild(innerStar);
+					}
+					if (sysObjectArray[i].indexOf("burn_color") != -1) {
+						var burnColourString = sysObjectArray[i].match(burnColourRegex).join().substring(13).replace(/ /g,"");
+						console.log(objectName+" burn colour: "+burnColourString);
+						var burnColourArray = burnColourString.split(",");
+						var burnColourString = "rgb("+parseInt(burnColourArray[0])+","+parseInt(burnColourArray[1])+","+parseInt(burnColourArray[2])+")";
+						object.style.backgroundColor = burnColourString;
+						if (object.className.indexOf("star") != -1) {
+							object.style.boxShadow += " "+burnColourString;
+							innerStar.style.boxShadow += " "+burnColourString;
+							innerStar.style.backgroundColor = burnColourString;
+						}
+					}
+					if (sysObjectArray[i].indexOf("atmosphere_range =") != -1) {
+						var objectRadius = parseFloat(sysObjectArray[i].match(atmosphereRadiusRegex).join().substring(19))/2000*systemScaleFactor;
+						object.style.width = objectRadius*2 + "%";
+						object.style.height = objectRadius*2 + "%";
+						object.style.marginTop = -objectRadius + "%";
+						object.style.marginLeft = -objectRadius + "%";
+						if (object.className.indexOf("star") != -1) {
+							object.style.borderSizing = "border-box";
+							object.style.border = "solid red 1px";
+							object.style.boxShadow = "none";
+							object.style.backgroundColor = "transparent";
+							object.style.background = "transparent";
+						}
+					}
+					if (object.className == "object") {
+						object.style.display = "none";
+					}
+				}
+				console.log("Map for "+system+" generated");
+				updateConfigClasses();
+				$(".map div label").hAlign();
+				document.querySelector("body").removeChild(document.querySelector(".loadingOverlay"));
+				$("#searchField").keyup();
+			});
+		}
+	}
+	
+	function getObjectClasses(objectString) {
+		var nameString = objectString.match(nameRegex).join().substring(11);
+		var baseRegex = /^\w+\d+_\d+$/g;
+		var classArray = [];
+		classArray.push("object");
+		if (objectString.toLowerCase().indexOf("atmosphere_range =") != -1 && objectString.toLowerCase().indexOf("star =") == -1) {
+			classArray.push("planet");
+		} else if (objectString.toLowerCase().indexOf("base = ") != -1 | objectString.toLowerCase().indexOf("dock_with =") != -1) {
+			classArray.push("base");
+		}
+		if (objectString.indexOf("base =") != -1) {
+			classArray.push("dockable");
+		}
+		if (nameString.toLowerCase().indexOf("trade_lane") != -1 
+			| objectString.toLowerCase().indexOf("dsy_ga_lane") != -1 
+			| objectString.toLowerCase().indexOf("trade_lane_ring") != -1 
+			| objectString.toLowerCase().indexOf("next_ring =") != -1)  {
+			classArray.push("tradelane");
+		}
+		if (objectString.indexOf("loadout =") != -1 && (nameString.toLowerCase().indexOf("wplatform") != -1 | objectString.toLowerCase().indexOf("261164") != -1)) {
+			classArray.push("wPlatform");
+		}
+		if (objectString.indexOf("loadout =") != -1 && objectString.indexOf("reputation =") == -1) {
+			classArray.push("wreck");
+		}
+		if (nameString.toLowerCase().indexOf("proxy_base") != -1) {
+			classArray.push("proxyBase");
+		}
+		if (nameString.toLowerCase().indexOf("_to_") != -1) {
+			classArray.push("jump");
+			if (nameString.toLowerCase().indexOf("_hole") != -1) {
+				classArray.push("hole");
+			} else {
+				classArray.push("gate");
+			}
+		}
+		if (objectString.toLowerCase().indexOf("star =") != -1 && objectString.toLowerCase().indexOf("atmosphere_range =") != -1) {
+			classArray.push("star");
+		}
+		if (objectString.toLowerCase().indexOf("_dock_ring") != -1) {
+			classArray.push("dockingRing");
+		}
+		if (objectString.toLowerCase().indexOf("docking_fixture") != -1) {
+			classArray.push("mooringFixture");
+		}
+		if (objectString.toLowerCase().indexOf("goto =") !=-1) {
+		}
+		console.log("Object classes for "+nameString+" generated: "+classArray.join(" "));
+		return classArray.join(" ");
+	}
+	
+	function startSearchField() {
+		if (searchArrayState != "ready") {
+			setTimeout(function(){startSearchField()},10);
+		} else {
+			$("#searchField").autoComplete({
+				minChars: 2,
+				source: function(term, suggest){
+					term = term.toLowerCase();
+					var choices = matchArray;
+					var matches = [];
+					for (i=0; i<choices.length; i++) {
+						if (~choices[i].toLowerCase().indexOf(term)) {
+							matches.push(choices[i]);
+						}
+					}
+					suggest(matches);
+				},
+				onSelect: function(e, term, item) {
+					$("#searchField").keyup();
+				}
+			});
+			
+			$("#searchField").keyup(function(event) {
+				if (event.keyCode != 38 && event.keyCode != 40) {
+					var search = $.trim(this.value).toLowerCase();
+					if (search == "omega-5" && searchTimedOut == "nope") {
+						setTimeout(function() {if (searchTimedOut == "yup") {$("#searchField").keyup();}}, 550);
+						searchTimedOut = "yup";
+					} else if (document.querySelector(".loadingOverlay") == null) {
+						searchTimedOut = "nope";
+						if (typeof searchArray[search] !== "undefined" && searchArray[search].toLowerCase() !== currentSystemNickname.toLowerCase()) {
+							generateMap(searchArray[search]);
+						}
+					}
+				}
+			});
+		}
+	}
+	
+	(function ($) {
+		$.fn.hAlign = function() {
+			return this.each(function(i){
+			var w = $(this).width();
+			var ow = $(this).outerWidth();	
+			var ml = (w + (ow - w)) / 2;	
+			$(this).css("margin-left", "-" + ml + "px");
+			$(this).css("left", "50%");
+			$(this).css("position", "absolute");
+			});
+		};
+	})(jQuery);
+	
+	var invertObject = function(object) {
+		var invertedObject = {};
+		for (var value in object) {
+			if(object.hasOwnProperty(value)) {
+				invertedObject[object[value]] = value;
+			}
+		}
+		return invertedObject;
+	}
+	
+	// line generator function
+	function Line(x1, x2, y1, y2, classString, propString, container, object1, object2) {
+		var lineObject = document.createElement("div");
+		var linePivot = document.createElement("div");
+		var parent = document.querySelector(container);
+		xDiff = (x1 - x2);
+		yDiff = (y1 - y2);
+		xAvg = (x1 + x2) / 2.000;
+		yAvg = (y1 + y2) / 2.000;
+		lineLength = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+		linePivot.className = classString + " " + propString;
+		linePivot.style.left = (yAvg) + "%";
+		linePivot.style.top = (xAvg) + "%";
+		linePivot.style.position = "absolute";
+		linePivot.dataset.connectedPoints = object1 + " " + object2;
+		lineObject.style.height = lineLength / 100 * parent.offsetHeight + "px";
+		lineObject.style.transform = "translateY(-" + (lineLength / 200 * parent.offsetHeight) + "px)";
+		lineObject.style.webkitTransform = "translateY(-" + (lineLength / 200 * parent.offsetHeight) + "px)";
+		lineObject.style.position = "absolute";
+		lineObject.className = propString;
+		linePivot.style.transform = "rotate(" + (-Math.atan(yDiff / xDiff)) + "rad)";
+		linePivot.style.webkitTransform = "rotate(" + (-Math.atan(yDiff / xDiff)) + "rad)";
+		linePivot.appendChild(lineObject);
+		document.querySelector(container).appendChild(linePivot);
+	}
+	
+	// jQuery autoComplete v1.0.6
+	// https://github.com/Pixabay/jQuery-autoComplete
+	!function(e){e.fn.autoComplete=function(t){var o=e.extend({},e.fn.autoComplete.defaults,t);return"string"==typeof t?(this.each(function(){var o=e(this);"destroy"==t&&(e(window).off("resize.autocomplete",o.updateSC),o.off("blur.autocomplete focus.autocomplete keydown.autocomplete keyup.autocomplete"),o.data("autocomplete")?o.attr("autocomplete",o.data("autocomplete")):o.removeAttr("autocomplete"),e(o.data("sc")).remove(),o.removeData("sc").removeData("autocomplete"))}),this):this.each(function(){function t(e){var t=s.val();if(s.cache[t]=e,e.length&&t.length>=o.minChars){for(var a="",c=0;c<e.length;c++)a+=o.renderItem(e[c],t);s.sc.html(a),s.updateSC(0)}else s.sc.hide()}var s=e(this);s.sc=e('<div class="autocomplete-suggestions '+o.menuClass+'"></div>'),s.data("sc",s.sc).data("autocomplete",s.attr("autocomplete")),s.attr("autocomplete","off"),s.cache={},s.last_val="",s.updateSC=function(t,o){if(s.sc.css({top:s.offset().top+s.outerHeight(),left:s.offset().left,width:s.outerWidth()}),!t&&(s.sc.show(),s.sc.maxHeight||(s.sc.maxHeight=parseInt(s.sc.css("max-height"))),s.sc.suggestionHeight||(s.sc.suggestionHeight=e(".autocomplete-suggestion",s.sc).first().outerHeight()),s.sc.suggestionHeight))if(o){var a=s.sc.scrollTop(),c=o.offset().top-s.sc.offset().top;c+s.sc.suggestionHeight-s.sc.maxHeight>0?s.sc.scrollTop(c+s.sc.suggestionHeight+a-s.sc.maxHeight):0>c&&s.sc.scrollTop(c+a)}else s.sc.scrollTop(0)},e(window).on("resize.autocomplete",s.updateSC),s.sc.appendTo("body"),s.sc.on("mouseleave",".autocomplete-suggestion",function(){e(".autocomplete-suggestion.selected").removeClass("selected")}),s.sc.on("mouseenter",".autocomplete-suggestion",function(){e(".autocomplete-suggestion.selected").removeClass("selected"),e(this).addClass("selected")}),s.sc.on("mouseup",".autocomplete-suggestion",function(t){var a=e(this),c=a.data("val");(c||a.hasClass("autocomplete-suggestion"))&&(s.val(c),o.onSelect(t,c,a),s.sc.hide())}),s.on("blur.autocomplete",function(){try{over_sb=e(".autocomplete-suggestions:hover").length}catch(t){over_sb=0}over_sb?s.is(":focus")||s.focus():(s.last_val=s.val(),s.sc.hide())}),o.minChars||s.on("focus.autocomplete",function(){s.last_val="\n",s.trigger("keyup.autocomplete")}),s.on("keydown.autocomplete",function(t){if((40==t.which||38==t.which)&&s.sc.html()){var a,c=e(".autocomplete-suggestion.selected",s.sc);return c.length?(a=40==t.which?c.next(".autocomplete-suggestion"):c.prev(".autocomplete-suggestion"),a.length?(c.removeClass("selected"),s.val(a.addClass("selected").data("val"))):(c.removeClass("selected"),s.val(s.last_val),a=0)):(a=40==t.which?e(".autocomplete-suggestion",s.sc).first():e(".autocomplete-suggestion",s.sc).last(),s.val(a.addClass("selected").data("val"))),s.updateSC(0,a),!1}if(27==t.which)s.val(s.last_val).sc.hide();else if(13==t.which){var c=e(".autocomplete-suggestion.selected",s.sc);c.length&&(o.onSelect(t,c.data("val"),c),setTimeout(function(){s.sc.hide()},10))}}),s.on("keyup.autocomplete",function(a){if(!~e.inArray(a.which,[13,27,35,36,37,38,39,40])){var c=s.val();if(c.length>=o.minChars){if(c!=s.last_val){if(s.last_val=c,clearTimeout(s.timer),o.cache){if(c in s.cache)return void t(s.cache[c]);for(var l=1;l<c.length-o.minChars;l++){var i=c.slice(0,c.length-l);if(i in s.cache&&!s.cache[i].length)return void t([])}}s.timer=setTimeout(function(){o.source(c,t)},o.delay)}}else s.last_val=c,s.sc.hide()}})})},e.fn.autoComplete.defaults={source:0,minChars:3,delay:150,cache:1,menuClass:"",renderItem:function(e,t){var o=new RegExp("("+t.split(" ").join("|")+")","gi");return'<div class="autocomplete-suggestion" data-val="'+e+'">'+e.replace(o,"<b>$1</b>")+"</div>"},onSelect:function(e,t,o){}}}(jQuery);
+	</script>
+	<link href='//fonts.googleapis.com/css?family=Oswald:300' rel='stylesheet' type='text/css'>
+	<link href='//fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+	<style>
+	
+	html {
+		background: url("starfield.gif") black;
+		background-attachment: fixed;
+	}
+	
+	body {
+		padding: 1.5em;
+		min-width: 61em;
+	}
+	
+	.navContainer {
+		height: 2em;
+		vertical-align: center;
+		width: 59em;
+		position: relative;
+		top: 0em;
+		text-align: center;
+		color: white;
+		font-family: "Agency FB", "Oswald", sans-serif;
+		margin: 0 auto;
+		border: 0.2em solid rgb(30, 166, 197);
+		border-bottom: none;
+		box-shadow: 0em 0em 0.5em 0em rgb(30, 166, 197);
+		z-index: 99;
+		background: url("nnwall.jpg") black;
+		padding: 0;
+		line-height: 1em;
+	}
+	
+	.mapLegend {
+		position: absolute;
+		width: 59em;
+		height: 2em;
+		z-index: 8;
+		background: #000 url("nnwall.jpg") repeat scroll 0% 0%;
+		box-shadow: 0em 0em 0.5em 0em #1EA6C5;
+		border: 0.2em solid #1EA6C5;
+		color: #FFF;
+		font-family: "Agency FB","Oswald",sans-serif;
+		left: 2.35em;
+		top: 3.6em;
+	}
+	
+	.mapLegend .system {
+		top: 0.9em;
+		position: relative;
+		left: 0.9em;
+	}
+	
+	.mapLegend .system label {
+		position: absolute;
+		left: 1.5em;
+		top: -0.25em;
+	}
+	
+	.mapLegend .systemLegendContainer {
+		float: left;
+		height: 2.2em;
+		position: relative;
+		white-space: nowrap;
+		width: 9.65%;
+	}
+	
+	#configButton {
+		position: absolute;
+		left: 25.25em;
+		top: 0.5em;
+	}
+	
+	.configMenu {
+		position: absolute;
+		width: 59em;
+		height: 2.5em;
+		z-index: 9;
+		background: #000 url("nnwall.jpg") repeat scroll 0% 0%;
+		box-shadow: 0em 0em 0.5em 0em #1EA6C5;
+		border: 0.2em solid #1EA6C5;
+		color: #FFF;
+		font-family: "Agency FB","Oswald",sans-serif;
+		left: 2.35em;
+		opacity: 1;
+		top: 3.6em;
+		transition: all 1s ease;
+	}
+	
+	.configMenu.closed {
+		top: -5em !important;
+		opacity: 0;
+	}
+	
+	@media (min-width: 65em) {
+		.navContainer {
+			position: fixed !important;
+			left: 0 !important;
+			right: 0 !important;
+			border-bottom: 0.2em solid rgb(30, 166, 197) !important;
+		}
+		
+		.mapContainer {
+			top: 0.7em !important;
+		}
+		
+		.infocardContainer {
+			top: 0.7em !important;
+		}
+		
+		.infocardContainer span.infocardText {
+			padding-left: 0;
+			padding-right: 0;
+		}
+		
+		.configMenu, .mapLegend {
+			position: fixed !important;
+			margin: 0px auto !important;
+			left: 0 !important;
+			right: 0 !important;
+			top: 2.2em !important;
+		}
+
+	}
+	
+	.mapContainer {
+		position: relative;
+		height: 60em;
+		width: 60em;
+		margin: 0 auto;
+		border: 0.22em rgb(30, 167, 198) solid;
+		box-shadow: 0em 0em 0.5em 0.1em rgb(28, 107, 144);
+		border-radius: 0.5em;
+		/*background-color: rgb(30, 167, 198);*/
+		overflow: hidden;
+		overflow: -moz-hidden-unscrollable;
+		overflow: -webkit-hidden-unscrollable;
+	}
+	
+	.grid .darkOverlay {
+		height: 100%;
+		width: 100%;
+		background-color: rgba(0,0,0,0.4);
+	}
+	
+	.map {
+		height: 75%;
+		width: 75%;
+		position: absolute;
+		margin-top: 50%;
+		margin-left: 50%;
+		color: white;
+		font-family: "Agency FB", "Oswald", sans-serif;
+		z-index: 5;
+		border-radius: 0.1em;
+	}
+	
+	.grid .mapScale h2 {
+		color: white;
+		font-family: "Agency FB", "Oswald", sans-serif;
+		position: relative;
+		top: -2em;
+	}
+	
+	.grid .mapScale {
+		position: absolute;
+		right: 0.75%;
+		bottom: 0.75%;
+		width: 10.5%;
+		border: solid #F3F3F3 0.2em;
+		box-sizing: border-box;
+		border-top: none;
+		height: 1%;
+		text-align: center;
+	}
+	
+	.grid .mapScale .arrowHead {
+		position: absolute;
+		border-top: 0.2em solid white;
+		border-left: 0.2em solid white;
+		height: 0.3em;
+		width: 0.3em;
+		bottom: -0.3em;
+		display: none;
+	}
+	
+	.grid .mapScale.arrows {
+		border-left: none !important;
+		border-right: none !important;
+		border-bottom-style: dashed !important;
+		bottom: 1% !important;
+	}
+	
+	.grid .mapScale.arrows .arrowHead {
+		display: block !important;
+	}
+	
+	.grid .mapScale .arrowL.arrowHead {
+		transform: rotate(-45deg);
+		-webkit-transform: rotate(-45deg);
+		left: 0;
+	}
+	
+	.grid .mapScale .arrowR.arrowHead {
+		transform: rotate(135deg);
+		-webkit-transform: rotate(135deg);
+		right: 0;
+	}
+	
+	.infocardContainer {
+		width: 58.5em;
+		padding-left: 0.25em;
+		padding-right: 0.25em;
+		position: relative;
+		top: 0em;
+		text-align: center;
+		color: white;
+		font-family: "Agency FB", "Oswald", sans-serif;
+		margin: 0 auto;
+		border: 0.2em solid rgb(30, 166, 197);
+		border-top: none;
+		box-shadow: 0em 0em 0.5em 0em rgb(30, 166, 197);
+		z-index: 0;
+		background: url("nnwall.jpg") black;
+	}
+	
+	.infocardContainer * {
+		text-align: center;
+		margin: 0 auto;
+		width: auto;
+		padding: 0.25em;
+	}
+	
+	.infocardContainer h2 {
+		width: auto;
+	}
+	
+	.systemTitle {
+		position: absolute;
+		bottom: 0.1em;
+		color: white;
+		text-align: center;
+		width: 100%;
+		font-family: "Agency FB", "Oswald", sans-serif;
+		font-size: 3em;
+		padding: 0;
+		margin: 0;
+		color: rgb(135, 195, 224);
+	}
+	
+	.system {
+		height: 0.65em;
+		width: 0.65em;
+		background-color: rgb(36, 36, 36);
+		border: 0.15em solid;
+		border-radius: 100%;
+		margin-top: -0.325em;
+		margin-left: -0.325em;
+	}
+	
+	.system label {
+		font-size: 0.8em;
+	}
+	
+	.system.ew {
+		border-color: #C35B2B;
+	}
+	
+	.system.bw {
+		border-color: #959597;
+	}
+	
+	.system.ku {
+		border-color: #FED433;
+	}
+	
+	.system.li {
+		border-color: #2299F5;
+	}
+	
+	.system.br {
+		border-color: #BD3035;
+	}
+	
+	.system.rh {
+		border-color: #00AD1D;
+	}
+	
+	.system.hi {
+		border-color: #A42AFA;
+	}
+	
+	.system.st {
+		border-color: #368674;
+	}
+	
+	.system.iw {
+		border-color: #DBDBDB;
+	}
+	
+	.system.ga {
+		border-color: rgb(89, 97, 255);
+		border-style: dashed;
+	}
+	
+	/* Move LXP 48N outside the rest */
+	.system[data-system-nickname="ca01"] {
+		top: 55.6% !important;
+		left: -63.2% !important;
+	}
+	
+	/* Move the Planet Tomioka "system outside the rest */
+	.system[data-system-nickname="ev01"] {
+		top: 62.2% !important;
+		left: -56.6% !important;
+	}
+	
+	.system[data-system-nickname="st02"] label {
+		transform: translateX(-0.25em);
+		-webkit-transform: translateX(-0.25em);
+	}
+	
+	.system[data-system-nickname="st03"] label {
+		transform: translateX(-0.35em);
+		-webkit-transform: translateX(-0.35em);
+	}
+	
+	.system[data-system-nickname="st05"] label {
+		transform: translateX(0.4em);
+		-webkit-transform: translateX(0.4em);
+	}
+	
+	.system[data-system-nickname="ew18"] label {
+		transform: translateX(0.25em);
+		-webkit-transform: translateX(0.25em);
+	}
+	
+	.system[data-system-nickname="ew85"] label {
+		transform: translateX(-0.25em);
+		-webkit-transform: translateX(-0.25em);
+	}
+	
+	.system[data-system-nickname="ew06"] label {
+		transform: translateX(0.4em);
+		-webkit-transform: translateX(0.4em);
+	}
+	
+	.system[data-system-nickname="st04"] label {
+		transform: translateX(0.3em);
+		-webkit-transform: translateX(0.3em);
+	}
+	
+	.system[data-system-nickname="st03b"] label {
+		transform: translateX(0.45em);
+		-webkit-transform: translateX(0.45em);
+	}
+	
+	.system[data-system-nickname="st39"] label {
+		transform: translateX(-0.3em);
+		-webkit-transform: translateX(-0.3em);
+	}
+	
+	.system[data-system-nickname="st02c"] label {
+		transform: translateX(0.25em);
+		-webkit-transform: translateX(0.25em);
+	}
+	
+	.system[data-system-nickname="li13"] label {
+		transform: translateX(-0.4em);
+		-webkit-transform: translateX(-0.4em);
+	}
+	
+	.system[data-system-nickname="bw71"] label {
+		transform: translateX(-0.3em);
+		-webkit-transform: translateX(-0.3em);
+	}
+	
+	.zone {
+		background-color: rgba(255,255,255,0.1);
+		border-radius: 100%;
+		border: solid 1px rgba(255,255,255,0.3);
+	}
+	
+	.pos, .name {
+		display: none !important;
+	}
+	
+	.tradelane label {
+		display: none !important;
+	}
+	
+	.jump {
+		width: 0.5em;
+		height: 0.5em;
+		margin-top: -0.25em;
+		margin-left: -0.25em;
+		border-radius: 100%;
+	}
+	
+	.wreck {
+		width: 0.25em;
+		height: 0.25em;
+		background-color: red;
+		margin-top: -0.125em;
+		margin-left: -0.125em;
+	}
+	
+	.wreck.hidden, .zone.hidden, .system.hidden, .systemConnectionProp.hidden {
+		display: none !important;
+	}
+	
+	.map div {
+		white-space: nowrap;
+	}
+	
+	.map div label {
+		display: inline-block;
+		position: absolute;
+		top: 1em;
+		left: -1em;
+		white-space: nowrap;
+		z-index: 7;
+		text-shadow: 0em 0em 0.1em black !important;
+	}
+	
+	.map div.object label {
+		top: 130%;
+	}
+	
+	.map div.object.planet label {
+		top: 110%;
+	}
+	
+	.map div.object.star label {
+		top: 65%;
+	}
+	
+	.map div[data-ids-info],
+	.map div[data-ids-info] label,
+	.map div[data-system-nickname],
+	.map div[data-system-nickname] label,
+	#configButton,
+	.editLink {
+		cursor: pointer;
+	}
+	
+	.map div[data-ids-info]:hover,
+	.map div[data-system-nickname]:hover {
+		box-shadow: 0em 0em 0.4em 0.2em rgb(237, 112, 7);
+		color: rgb(255, 167, 6);
+	}
+	
+	.map div[data-ids-info]:hover label,
+	.map div[data-ids-info] label:hover,
+	.map div[data-system-nickname]:hover label,
+	.map div[data-system-nickname] label:hover,
+	.navContainer #showUniverseMap:hover,
+	.navContainer #helpLink:hover,
+	#configButton:hover,
+	.editLink:hover {
+		text-shadow: 0em 0em 0.1em black !important;
+		color: rgb(255, 167, 6);
+		z-index: 9;
+	}
+	
+	.editLink {
+		color: #FFF;
+	}
+	
+	.editLink:visited {
+		color: #FFF;
+	}
+	
+	.systemConnection {
+		z-index: -1;
+		margin-left: 0.125em;
+		margin-top: 0.125em;
+	}
+	
+	.systemConnection div {
+		width: 0.1em;
+		background-color: rgba(143, 192, 255, 0.5);
+		margin-left: -0.05em;
+	}
+	
+	.systemConnection.jgConnection div {
+		box-shadow: 0px 0px 0.2em 0.04em rgba(143, 192, 255, 0.9);
+		background-color: rgba(143, 192, 255, 0.6);
+	}
+	
+	/* yellow?
+	.systemConnection.jgConnection div {
+		box-shadow: 0px 0px 0.2em 0.04em rgba(255, 250, 143, 0.5);
+		background-color: rgba(255, 250, 143, 0.5);
+	}*/
+
+	.map div.object[data-ids-info]:hover {
+		z-index: 9;
+	}
+	
+	.jump.hole {
+		background: red;
+	}
+	
+	.jump.gate {
+		background: gray;
+	}
+	
+	.star {
+		width: 1em;
+		height: 1em;
+		border-radius: 100%;
+		margin-top: -0.5em;
+		margin-left: -0.5em;
+		background: white;
+		box-shadow: 0em 0em 2em 0.2em;
+	}
+	
+	.tradelane {
+		height: 0.2em;
+		width: 0.3em;
+		margin-top: -0.1em;
+		margin-left: -0.15em;
+		background-color: gray;
+	}
+	
+	.wPlatform {
+		display: none;
+	}
+	
+	.planet {
+		border-radius: 100%;
+		background-color: rgb(74, 74, 255);
+		width: 0.6em;
+		height: 0.6em;
+		margin-top: -0.3em;
+		margin-left: -0.3em;
+		box-shadow: 0em 0em 0.4em 0em rgb(213, 220, 247);
+	}
+	
+	.base {
+		height: 0.25em;
+		width: 0.25em;
+		margin-top: -0.125em;
+		margin-left: -0.125em;
+		background: white;
+	}
+	
+	.proxyBase {
+		display: none !important;
+	}
+	
+	.dockingRing, .mooringFixture {
+		display: none !important;
+	}
+
+	.grid {
+		width: 100%;
+		height: 100%;
+		background: url("SiriusMap.jpg") black;
+		background-size: cover !important;
+		border-radius: 0.5em;
+	}
+	
+	.grid .hzGridLine, .grid .vertGridLine {
+		background: rgb(25, 47, 96);
+		position: absolute;
+		box-shadow: 0 0 1em 0.1em rgb(25, 47, 96);
+	}
+	
+	.grid .vertGridLine {
+		width: 0.2em;
+		height: 100%;
+	}
+	
+	.grid .hzGridLine {
+		height: 0.2em;
+		width: 100%;
+	}
+	
+	.grid .hzGridLine:nth-of-type(1) {
+		top: 12.5%;
+	}
+
+	.grid .hzGridLine:nth-of-type(2) {
+		top: 25%;
+	}
+
+	.grid .hzGridLine:nth-of-type(3) {
+		top: 37.5%;
+	}
+
+	.grid .hzGridLine:nth-of-type(4) {
+		top: 50%;
+	}
+
+	.grid .hzGridLine:nth-of-type(5) {
+		top: 62.5%;
+	}
+
+	.grid .hzGridLine:nth-of-type(6) {
+		top: 75%;
+	}
+
+	.grid .hzGridLine:nth-of-type(7) {
+		top: 87.5%;
+	}
+	
+	.grid .vertGridLine:nth-of-type(8) {
+		left: 12.5%;
+	}
+
+	.grid .vertGridLine:nth-of-type(9) {
+		left: 25%;
+	}
+
+	.grid .vertGridLine:nth-of-type(10) {
+		left: 37.5%;
+	}
+
+	.grid .vertGridLine:nth-of-type(11) {
+		left: 50%;
+	}
+
+	.grid .vertGridLine:nth-of-type(12) {
+		left: 62.5%;
+	}
+
+	.grid .vertGridLine:nth-of-type(13) {
+		left: 75%;
+	}
+
+	.grid .vertGridLine:nth-of-type(14) {
+		left: 87.5%;
+	}
+
+	.loadingOverlay {
+		position: fixed;
+		z-index: 99;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
+		background: rgba(42, 42, 42, 0.8) 50% 50% no-repeat;
+	}
+	
+	.loaderTitle {
+		text-align: center;
+		color: white;
+		position: relative;
+		width: 100%;
+		font-family: "Agency FB", "Oswald", sans-serif;
+		text-shadow: 0 0 0.6em rgb(179, 179, 179);
+	}
+	
+	.loadTextContainer {
+		position: absolute;
+		top: 50%;
+		width: 100%;
+		margin-top: -2em;
+	}
+
+	.loader {
+		animation-name: magic;
+		-webkit-animation-name: magic;
+		animation-duration: 2s;
+		-webkit-animation-duration: 2s;
+		animation-timing-function: cubic-bezier(0.6, -0.28, 0.74, 0.05);
+		-webkit-animation-timing-function: cubic-bezier(0.6, -0.28, 0.74, 0.05);
+		animation-delay: 0s;
+		-webkit-animation-delay: 0s;
+		animation-iteration-count: infinite;
+		-webkit-animation-iteration-count: infinite;
+		animation-direction: normal;
+		-webkit-animation-direction: normal;
+		animation-fill-mode: none;
+		-webkit-animation-fill-mode: none;
+		animation-play-state: running;
+		-webkit-animation-play-state: running;
+		position: relative;
+		width: 1em;
+		height: 1em;
+		background: white;
+		transform: translateY(-50%);
+		-webkit-transform: translateY(-50%);
+		margin: 0 auto;
+		transform-style: preserve-3d;
+		-webkit-transform-style: preserve-3d;
+	}
+
+	@keyframes magic {
+		0% {
+			border-top-left-radius: 0em;
+			border-bottom-left-radius: 0em;
+			border-top-right-radius: 0em;
+			border-bottom-right-radius: 0em;
+			left: 0em;
+		}
+		25% {
+			border-top-left-radius: 1em;
+			border-bottom-left-radius: 1em;
+			border-top-right-radius: 0em;
+			border-bottom-right-radius: 0em;
+			left: -5em;
+		}
+		50% {
+			border-top-left-radius: 0em;
+			border-bottom-left-radius: 0em;
+			border-top-right-radius: 0em;
+			border-bottom-right-radius: 0em;
+			left: 0em;
+		}
+		75% {
+			border-top-left-radius: 0em;
+			border-bottom-left-radius: 0em;
+			border-top-right-radius: 1em;
+			border-bottom-right-radius: 1em;
+			left: 5em;
+		}
+		100% {
+			border-top-left-radius: 0em;
+			border-bottom-left-radius: 0em;
+			border-top-right-radius: 0em;
+			border-bottom-right-radius: 0em;
+			left: 0em;
+		}
+	}
+	
+	@-webkit-keyframes magic {
+		0% {
+			border-top-left-radius: 0em;
+			border-bottom-left-radius: 0em;
+			border-top-right-radius: 0em;
+			border-bottom-right-radius: 0em;
+			left: 0em;
+		}
+		25% {
+			border-top-left-radius: 1em;
+			border-bottom-left-radius: 1em;
+			border-top-right-radius: 0em;
+			border-bottom-right-radius: 0em;
+			left: -5em;
+		}
+		50% {
+			border-top-left-radius: 0em;
+			border-bottom-left-radius: 0em;
+			border-top-right-radius: 0em;
+			border-bottom-right-radius: 0em;
+			left: 0em;
+		}
+		75% {
+			border-top-left-radius: 0em;
+			border-bottom-left-radius: 0em;
+			border-top-right-radius: 1em;
+			border-bottom-right-radius: 1em;
+			left: 5em;
+		}
+		100% {
+			border-top-left-radius: 0em;
+			border-bottom-left-radius: 0em;
+			border-top-right-radius: 0em;
+			border-bottom-right-radius: 0em;
+			left: 0em;
+		}
+	}
+	
+	.searchBox {
+		right: 0.2em;
+		position: absolute;
+		top: 0.25em
+	}
+	
+	#searchField {
+		width: 33.899em;
+		height: 1.17em;
+		font-size: 0.9em;
+		padding: 0.1em;
+		padding-left: 1.3em;
+		margin: 0;
+		border: 0.2em solid #B4B4B4;
+		font-family: "Roboto", sans-serif;
+	}
+	
+	.searchBox #inputIndicator {
+		position: absolute;
+		left: 0.5em;
+		top: 0.2em;
+		font-weight: bold;
+		color: #B4B4B4;
+	}
+	
+	#searchField:focus + #inputIndicator {
+		color: black;
+	}
+	
+	#searchField:hover + #inputIndicator {
+		color: black;
+	}
+	
+	/* jQuery autocomplete plugin start */
+	.autocomplete-suggestions {
+	    text-align: left; cursor: default; border: 1px solid #ccc; border-top: 0; background: #fff; box-shadow: -1px 1px 3px rgba(0,0,0,.1); font-family: "Roboto", sans-serif;
+
+	    /* core styles should not be changed */
+	    position: absolute; display: none; z-index: 9999; max-height: 254px; overflow: hidden; overflow-y: auto; box-sizing: border-box;
+	}
+	.autocomplete-suggestion { position: relative; padding: 0 .6em; line-height: 23px; white-space: nowrap; overflow: hidden; font-size: 0.9em; color: #333; font-family: "Roboto", sans-serif;}
+	.autocomplete-suggestion b { font-weight: normal; color: #1f8dd6; }
+	.autocomplete-suggestion.selected { background: #f0f0f0; }
+	/* jQuery autocomplete plugin end */
+	
+	.navContainer #showUniverseMap {
+		position: absolute;
+		top: 0.4em;
+		left: 1em;
+		cursor: pointer;
+	}
+	
+	.navContainer #helpLink {
+		position: absolute;
+		color: white;
+		left: 0.3em;
+		top: 0.45em;
+	}
+	
+	.hzGridLine h3, .vertGridLine h3, #nullGridCell {
+		color: white;
+		font-family: "Agency FB", "Oswald", sans-serif;
+	}
+	
+	.hzGridLine h3 {
+		position: relative;
+		top: -0.5em;
+		left: 0.6em;
+	}
+	
+	.vertGridLine h3 {
+		position: relative;
+		left: 0.6em;
+		top: -0.8em;
+	}
+	
+	#nullGridCell {
+		position: absolute;
+		top: -0.75em;
+		left: 0.55em;
+	}
+	
+	#navSystemTitle {
+		position: absolute;
+		top: 0.4em;
+		left: 11em;
+	}
+	
+	.configOption {
+		position: absolute;
+	}
+	
+	.configOption label {
+		white-space: nowrap;
+	}
+	
+	.configOption#wrecks {
+		top: 0.25em;
+		left: 0.45em;
+	}
+	
+	.configOption#zones {
+		top: 0.25em;
+		left: 8em;
+	}
+	
+	.configOption#scale {
+		top: 0.25em;
+		left: 15em;
+	}
+	
+	.configOption#connections {
+		top: 0.25em;
+		left: 27.7em;
+	}
+	
+	.configOption#oorp {
+		top: 0.25em;
+		left: 41.1em;
+	}
+	
+	input.switch:empty {
+		margin-left: -4000px;
+	}
+
+	input.switch:empty ~ label {
+		position: relative;
+		float: left;
+		line-height: 1.6em;
+		text-indent: 4em;
+		margin: 0.2em 0;
+		cursor: pointer;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+
+	input.switch:empty ~ label:before, 
+	input.switch:empty ~ label:after {
+		position: absolute;
+		display: block;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		content: ' ';
+		width: 3.6em;
+		background-color: rgb(185, 185, 185);
+		border-radius: 0.3em;
+		box-shadow: inset 0 0.2em 0 rgba(0,0,0,0.3);
+		-webkit-transition: all 100ms ease-in;
+		transition: all 100ms ease-in;
+	}
+
+	input.switch:empty ~ label:after {
+		width: 1.4em;
+		top: 0.1em;
+		bottom: 0.1em;
+		margin-left: 0.1em;
+		background-color: #fff;
+		border-radius: 0.15em;
+		box-shadow: inset 0 -0.2em 0 rgba(0,0,0,0.2);
+	}
+
+	input.switch:checked ~ label:before {
+		background-color: #4395FF;
+	}
+
+	input.switch:checked ~ label:after {
+		margin-left: 2.1em;
+	}
+	</style>
+</head>
+<body>
+	<nav class="navContainer">
+		<a href="http://discoverygc.com/forums/showthread.php?tid=132266" id="helpLink" target="_blank">Post issues/suggestions here ~Space/Error (07.09)</a>
+		<span id="showUniverseMap" onClick="generateUniverseMap()">Show all systems</span>
+		<span id="navSystemTitle"></span>
+		<i id="configButton" class="fa fa-cogs"></i>
+		<div class="searchBox"><input id="searchField" type="text" placeholder="Where would you like to go?"><span id="inputIndicator">&gt;</span></div>
+	</nav>
+	<div class="mapLegend">
+		<div class="systemLegendContainer"><div class="system li"><label>Liberty</label></div></div>
+		<div class="systemLegendContainer"><div class="system br"><label>Bretonia</label></div></div>
+		<div class="systemLegendContainer"><div class="system ku"><label>Kusari</label></div></div>
+		<div class="systemLegendContainer"><div class="system rh"><label>Rheinland</label></div></div>
+		<div class="systemLegendContainer"><div class="system ga"><label>Gallia</label></div></div>
+		<div class="systemLegendContainer"><div class="system hi"><label>Hispania</label></div></div>
+		<div class="systemLegendContainer"><div class="system bw"><label>Border Worlds</label></div></div>
+		<div class="systemLegendContainer"><div class="system st"><label>Nomad Worlds</label></div></div>
+		<div class="systemLegendContainer"><div class="system ew"><label>Edge Worlds</label></div></div>
+		<div class="systemLegendContainer"><div class="system iw"><label>Independent Worlds</label></div></div>
+	</div>
+	
+	<div class="configMenu closed">
+		<div class="configOption" id="wrecks">
+			<input type="checkbox" checked="checked" id="switch1" name="switch1" class="switch" />
+			<label for="switch1">wrecks</label>
+		</div>
+		<div class="configOption" id="zones">
+			<input type="checkbox" checked="checked" id="switch2" name="switch2" class="switch" />
+			<label for="switch2">zones</label>
+		</div>
+		<div class="configOption" id="scale">
+			<input type="checkbox" checked="checked" id="switch3" name="switch3" class="switch" />
+			<label for="switch3">scale shows sector size</label>
+		</div>
+		<div class="configOption" id="connections">
+			<input type="checkbox" checked="checked" id="switch4" name="switch4" class="switch" />
+			<label for="switch4">show system connections</label>
+		</div>
+		<div class="configOption" id="oorp">
+			<input type="checkbox" id="switch5" name="switch5" class="switch" />
+			<label for="switch5">show inaccessible/oorp systems</label>
+		</div>
+	</div>
+	<div class="mapContainer">
+		<div class="map">
+		</div>
+		<div class="grid">
+			<div class="hzGridLine"><h3>2</h3></div>
+			<div class="hzGridLine"><h3>3</h3></div>
+			<div class="hzGridLine"><h3>4</h3></div>
+			<div class="hzGridLine"><h3>5</h3></div>
+			<div class="hzGridLine"><h3>6</h3></div>
+			<div class="hzGridLine"><h3>7</h3></div>
+			<div class="hzGridLine"><h3>8</h3></div>
+			<div class="vertGridLine"><h3>B</h3></div>
+			<div class="vertGridLine"><h3>C</h3></div>
+			<div class="vertGridLine"><h3>D</h3></div>
+			<div class="vertGridLine"><h3>E</h3></div>
+			<div class="vertGridLine"><h3>F</h3></div>
+			<div class="vertGridLine"><h3>G</h3></div>
+			<div class="vertGridLine"><h3>H</h3></div>
+			<h3 id="nullGridCell">A1</h3>
+		</div>
+	</div>
+	<div class="infocardContainer"></div>
+	<script>
+		generateLookupArrays();
+		generateUniverseMap();
+		generateSystemConnections();
+		startSearchField();
+	</script>
+	<script>
+		var _gaq=[['_setAccount','UA-33754219-1'],['_trackPageview']];
+		(function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+		g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+		s.parentNode.insertBefore(g,s)}(document,'script'));
+        </script>
+</body>
+</html>
